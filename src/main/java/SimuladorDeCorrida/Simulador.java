@@ -1,6 +1,8 @@
 package SimuladorDeCorrida;
 
+import SimuladorDeCorrida_Exceptions.*;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /*
@@ -16,12 +18,13 @@ import java.util.Scanner;
 
 public final class Simulador {
     private static class MenuFunctions {
+        // Classe responsavel pelas funcoes do menu
         private static class ID_Class {
-            // ArrayList para armazenar os ID's gerados
+            // Classe responsavel por gerenciar os ID's dos veiculos
+            
             private final ArrayList<Integer> ID_ArrayList = new ArrayList<>();
 
-            public int Create() // Gera um ID valido
-            {
+            public int Create() { // Gera um ID valido
                 int new_id;
                 boolean valid_id;
 
@@ -29,7 +32,7 @@ public final class Simulador {
                     // Gera um ID aleatorio entre 10 e 100
                     new_id = (int) (Math.random() * (100 - 10 + 1) + 10);
                     ID_ArrayList.add(new_id);
-                } else { // ArrayList contem ID's
+                } else { 
                     // Gera um ID aleatorio ateh que ele seja valido
                     do {
                         new_id = (int) (Math.random() * (100 - 10 + 1) + 10);
@@ -71,17 +74,15 @@ public final class Simulador {
         private final ArrayList<Veiculo> VehicleArrayList = new ArrayList<>();
         // Objeto da classe ID_Class para manipular ID's
         private final ID_Class ID = new ID_Class();
-
+        private final int MAX_VEHICLES = 20;
+        
         // Retorna o tipo de veiculo a partir do ID
         // Esta funcao nao deve ser usada dentro desta classe
         public String getVehicleType(int type_id) {
-            int index = ID.isValid(type_id);
-
-            if (index > -1) {
+            try {
+                int index = ID.isValid(type_id);
                 return VehicleArrayList.get(index).getVehicleType();
-            } else {
-                return "ID nao econtrado";
-            }
+            } catch (InvalidIDException e) { return e.toString(); }
         }
 
         // Verifica se existe o tipo de veiculo na ArrayList
@@ -95,40 +96,41 @@ public final class Simulador {
         }
 
         // Insere um veiculo na ArrayList
-        public void InsertVehicle(String VehicleType) {
+        public void InsertVehicle(String VehicleType) throws MaxVehicleCapacityReachedException {
             Veiculo v_new = null;
             int index;
-
-            switch (VehicleType) {
-                case "Bicicleta" -> {
-                    v_new = new Bicicleta(ID.Create());
-                    VehicleArrayList.add(v_new);
+            
+            if(VehicleArrayList.size() < 20) {
+                switch (VehicleType) {
+                    case "Bicicleta" -> {
+                        v_new = new Bicicleta(ID.Create());
+                        VehicleArrayList.add(v_new);
+                    }
+                    case "Motocicleta" -> {
+                        v_new = new Motocicleta(ID.Create());
+                        VehicleArrayList.add(v_new);
+                    }
+                    case "CarroPopular" -> {
+                        v_new = new CarroPopular(ID.Create());
+                        VehicleArrayList.add(v_new);
+                    }
+                    case "Ferrari" -> {
+                        v_new = new Ferrari(ID.Create());
+                        VehicleArrayList.add(v_new);
+                    }
                 }
-                case "Motocicleta" -> {
-                    v_new = new Motocicleta(ID.Create());
-                    VehicleArrayList.add(v_new);
-                }
-                case "CarroPopular" -> {
-                    v_new = new CarroPopular(ID.Create());
-                    VehicleArrayList.add(v_new);
-                }
-                case "Ferrari" -> {
-                    v_new = new Ferrari(ID.Create());
-                    VehicleArrayList.add(v_new);
-                }
-            }
-            ClearScreen();
-            index = VehicleArrayList.indexOf(v_new);
-            System.out.printf("Veiculo %d inserido:\n", index + 1);
-            System.out.println(VehicleArrayList.get(index).toString());
+                ClearScreen();
+                index = VehicleArrayList.indexOf(v_new);
+                System.out.printf("Veiculo %d inserido:\n", index + 1);
+                System.out.println(VehicleArrayList.get(index).toString());
+            } else { throw new MaxVehicleCapacityReachedException(); }
         }
 
         // Remove um veiculo da arraylist
         public void RemoveVehicle(int type_id) {
-            int index = ID.isValid(type_id);
-            String VehicleType;
-
-            if (index > -1) {
+            try {
+                String VehicleType;
+                int index = ID.isValid(type_id);
                 VehicleType = VehicleArrayList.get(index).getVehicleType();
 
                 // Veiculo eh removido
@@ -138,18 +140,15 @@ public final class Simulador {
 
                 ClearScreen();
                 System.out.printf("Veiculo(%s,ID:%d) removido!\n", VehicleType, type_id);
-            } else {
-                ClearScreen();
-                System.out.println("ID nao encontrado");
-            }
+            } catch (InvalidIDException e) {}
         }
 
         // Abastece o veiculo
         public void FuelVehicle(int type_id) {
-            int index = ID.isValid(type_id);
-            double fuel;
-
-            if (index > -1) {
+            try {
+                int index = ID.isValid(type_id);
+                double fuel;
+                
                 if (VehicleArrayList.get(index) instanceof Bicicleta) {
                     ClearScreen();
                     System.out.println("Nao eh possivel abastecer bicicleta");
@@ -172,10 +171,8 @@ public final class Simulador {
                             type_id, fuel);
                     System.out.println(VehicleArrayList.get(index).toString());
                 }
-            } else {
-                ClearScreen();
-                System.out.println("ID nao encontrado");
-            }
+                
+            } catch (InvalidIDException | InputMismatchException e) {}
         }
 
         // Imprime os dados de todos os veiculos
@@ -521,109 +518,105 @@ public final class Simulador {
     public static void main(String arg[]) {
         MenuFunctions Simulador = new MenuFunctions(); // Objeto da classe de funcoes
         Scanner scanner = new Scanner(System.in); // Scanner
-        char option; // Opcao dentro das categorias do menu
-        char menu; // Navegador do menu
+        int option; // Opcao dentro das categorias do menu
+        int menu; // Navegador do menu
         int type_id; // ID digitado pelo usuario
 
         do {
-            System.out.println("Selecione uma opcao: ");
-            System.out.println("a: Incluir veiculo");
-            System.out.println("b: Remover veiculo");
-            System.out.println("c: Abastecer veiculo");
-            System.out.println("d: Movimentar veiculo");
-            System.out.println("e: Movimentar todos os veiculos");
-            System.out.println("f: Imprimir dados de todos os veiculos");
-            System.out.println("g: Imprimir dados de todos os veiculos por tipo");
-            System.out.println("h: Esvaziar pneu");
-            System.out.println("i: Calibrar pneu");
-            System.out.println("j: Calibrar todos os pneus");
-            System.out.println("k: Imprimir pista de corrida");
-            System.out.println("l: Encerrar aplicacao");
-
-            System.out.printf("Opcao: ");
-            menu = scanner.next().charAt(0);
-
+            System.out.print("""
+                             --------------------------------------------------
+                                                    MENU
+                             -------------------------------------------------- 
+                             |01| Incluir veiculo 
+                             |02| Remover veiculo 
+                             |03| Abastecer veiculo 
+                             |04| Movimentar veiculo 
+                             |05| Movimentar todos os veiculos                
+                             |06| Imprimir dados de todos os veiculos         
+                             |07| Imprimir dados de todos os veiculos por tipo  
+                             |08| Esvaziar pneu 
+                             |09| Calibrar pneu 
+                             |10| Calibrar todos os pneus 
+                             |11| Imprimir pista de corrida 
+                             |12| Encerrar aplicacao 
+                              """);
+            System.out.println("Digite a opcao na proxima linha: ");
+            menu = 100;
+            try {
+                menu = scanner.nextInt();
+            } catch (InputMismatchException e) { 
+                scanner.nextLine();
+            }
+            
             switch (menu) {
-                case 'a' -> {
+                case 1 -> {
                     // Inserir veiculo
-                    
-                    if (Simulador.VehicleArrayList.size() == 20) {
-                        Simulador.ClearScreen();
-                        System.out.println("Quantidade maxima(20) de veiculos atingida");
-                        /*
-                        Este 'do while' evita que o usuario nao consiga ler a mensagem acima
-                        antes do menu ser impresso novamente.
-                        */
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = scanner.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    } else {
-                        option = 'a';
-                        do {
-                            if (option == 'a') { // Inserir
-                                if (Simulador.VehicleArrayList.size() == 20) {
-                                    Simulador.ClearScreen();
-                                    System.out.println("Quantidade maxima(20) de veiculos atingida");
-                                } else {
-                                    Simulador.ClearScreen();
-                                    System.out.println("Tipo de veiculo a ser inserido: ");
-                                    System.out.println("a: Bicicleta ");
-                                    System.out.println("b: Carro Popular");
-                                    System.out.println("c: Motocicleta");
-                                    System.out.println("d: Ferrari");
-                                    System.out.printf("Opcao: ");
-                                    option = scanner.next().charAt(0);
-
-                                    // Valida a entrada
-                                    switch (option) {
-                                        case 'a' -> // Bicicleta
-                                            Simulador.InsertVehicle("Bicicleta");
-                                        case 'b' -> // Carro popular
-                                            Simulador.InsertVehicle("CarroPopular");
-                                        case 'c' -> // Motocicleta
-                                            Simulador.InsertVehicle("Motocicleta");
-                                        case 'd' -> // Ferrari
-                                            Simulador.InsertVehicle("Ferrari");
-                                        default -> {
-                                            // Opcao invalida
-                                            Simulador.ClearScreen();
-                                            System.out.println("Opcao invalida");
-                                        }
+                    option = 1;
+                    do {
+                        if (option == 1) { // Inserir
+                            Simulador.ClearScreen();
+                            System.out.println("""
+                                               Tipo de veiculo a ser inserido:
+                                               |1| Bicicleta
+                                               |2| Carro Popular
+                                               |3| Motocicleta
+                                               |4| Ferrari
+                                                   """);
+                            System.out.println("Digite a opcao na proxima linha: ");
+                            option = scanner.nextInt();
+                            try {
+                                // Valida a entrada
+                                switch (option) {
+                                    case 1 -> // Bicicleta
+                                        Simulador.InsertVehicle("Bicicleta");
+                                    case 2 -> // Carro popular
+                                        Simulador.InsertVehicle("CarroPopular");
+                                    case 3 -> // Motocicleta
+                                        Simulador.InsertVehicle("Motocicleta");
+                                    case 4 -> // Ferrari
+                                        Simulador.InsertVehicle("Ferrari");
+                                    default -> {
+                                        // Opcao invalida
+                                        Simulador.ClearScreen();
+                                        System.out.println("Opcao invalida");
                                     }
                                 }
-                            } else if (option != 'b') {
+                            } catch (MaxVehicleCapacityReachedException e) {
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                System.out.println(e);
+                                try {
+                                    Thread.sleep(2500);
+                                } catch (InterruptedException ie) {}
                             }
+                        } else if (option != 2) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao invalida");
+                        }
 
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Incluir outro veiculo ");
-                            System.out.println("b: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = scanner.next().charAt(0);
-                        } while (option != 'b');
-                    }
+                        System.out.println("""
+                                           Opcoes:
+                                           |1| Incluir outro veiculo
+                                           |2| Voltar para o menu
+                                               """);
+                        System.out.printf("Digite a opcao na proxima linha: ");
+                        option = scanner.nextInt();
+                    } while (option != 2);
                 }
 
-                case 'b' -> {
+                case 2 -> {
                     // Remover veiculo
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
+                        option = 1;
                         do {
-                            if (option == 'a') { // Remover
+                            if (option == 1) { // Remover
                                 if (!Simulador.VehicleArrayList.isEmpty()) {
-                                    Simulador.PrintAllVehicles();
-                                    System.out.printf("Informe o ID do veiculo a ser removido: ");
-                                    type_id = scanner.nextInt();
-                                    Simulador.RemoveVehicle(type_id);
+                                    try {
+                                        Simulador.PrintAllVehicles();
+                                        System.out.println("Informe o ID na proxima linha: ");
+                                        type_id = scanner.nextInt();
+                                        Simulador.RemoveVehicle(type_id);
+                                    } catch (InputMismatchException e) {}
                                 } else {
                                     Simulador.ClearScreen();
                                     System.out.println("Nenhum veiculo encontrado");
@@ -663,7 +656,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'c' -> {
+                case 3 -> {
                     //Abastecer veiculo
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -709,7 +702,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'd' -> {
+                case 4 -> {
                     // Mover um veiculo
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -756,7 +749,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'e' -> {
+                case 5 -> {
                     // Mover todos os veiculos
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -796,7 +789,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'f' -> {
+                case 6 -> {
                     // Imprimir dados de todos os veiculos
                     
                     option = 'a';
@@ -816,7 +809,7 @@ public final class Simulador {
                     } while (option != 'b');
                 }
 
-                case 'g' -> {
+                case 7 -> {
                     // Imprimir dados de veiculos por tipo
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -874,7 +867,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'h' -> {
+                case 8 -> {
                     // Esvaziar um pneu especifico
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -921,7 +914,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'i' -> {
+                case 9 -> {
                     // Calibrar um pneu especifico
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -968,7 +961,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'j' -> {
+                case 10 -> {
                     // Calibrar todos os pneus
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -1009,7 +1002,7 @@ public final class Simulador {
                     }
                 }
 
-                case 'k' -> {
+                case 11 -> {
                     // Imprimir pista de corrida
                     
                     if (!Simulador.VehicleArrayList.isEmpty()) {
@@ -1047,6 +1040,6 @@ public final class Simulador {
                 }
             }
             Simulador.ClearScreen();
-        } while (menu != 'l');
+        } while (menu != 12);
     }
 }
