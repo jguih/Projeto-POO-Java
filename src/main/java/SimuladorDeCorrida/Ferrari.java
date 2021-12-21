@@ -2,10 +2,8 @@ package SimuladorDeCorrida;
 
 import java.util.Random;
 
-/*
-    Aluno: José Guilherme Alves dos Santos
-    RA: 2157187
- */
+// Autor: Jose Guilherme Alves
+
 public final class Ferrari extends VeiculoMotorizado implements IPVA {
 
     public static final int BLOCKS_PERMOVEMENT = 10;
@@ -15,14 +13,11 @@ public final class Ferrari extends VeiculoMotorizado implements IPVA {
     public Ferrari(int ID) {
         super(ID, 4);
         // IPVA
+        CalcularIPVA();
         boolean test;
         Random rand = new Random();
         test = rand.nextBoolean();
-        if (test == true) {
-            setIPVA(CalcularIPVA()); // Nao pago
-        } else {
-            setIPVA(0); // Pago
-        }
+        setIPVA_condition(test);
     }
 
     @Override
@@ -44,14 +39,24 @@ public final class Ferrari extends VeiculoMotorizado implements IPVA {
     public String toString() { // Retorna uma string com informacoes do veiculo
         String string = String.format("Ferrari | ID: %d | Distancia Percorrida: %d blocos |"
                 + " Combustivel: %.2fL | IPVA: %s | Rodas: %d%d%d%d ", getID(), getDistanciaPercorrida(),
-                getFuel(), getIPVA() == 0 ? "Pago" : String.format("%.2f", getIPVA()),
+                getFuel(), ipva_condition ? "Pago" : "Nao Pago",
                 getCalibragem(0) == true ? 1 : 0, getCalibragem(1) == true ? 1 : 0,
                 getCalibragem(2) == true ? 1 : 0, getCalibragem(3) == true ? 1 : 0);
         return string;
     }
 
     @Override
-    public double CalcularIPVA() {
-        return BASEVALUE * CONS_FERRARI;
+    public void CalcularIPVA() {
+        ipva = BASEVALUE * CONS_CARRO_POPULAR;
+    }
+
+    @Override
+    public void setIPVA_condition(boolean condition) {
+        ipva_condition = condition;
+    }
+
+    @Override
+    public boolean getIPVA_condition() {
+        return ipva_condition;
     }
 }

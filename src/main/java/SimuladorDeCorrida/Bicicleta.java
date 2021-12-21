@@ -1,9 +1,8 @@
 package SimuladorDeCorrida;
 
-/*
-    Aluno: José Guilherme Alves dos Santos
-    RA: 2157187
- */
+
+// Autor: Jose Guilherme Alves
+
 public final class Bicicleta extends Veiculo {
 
     public static final int BLOCKS_PERMOVEMENT = 2;

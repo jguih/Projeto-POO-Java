@@ -1,9 +1,7 @@
 package SimuladorDeCorrida;
 
-/*
-    Aluno: José Guilherme Alves dos Santos
-    RA: 2157187
- */
+// Autor: Jose Guilherme Alves
+
 public interface IPVA {
 
     double CONS_CARRO_POPULAR = 1.3;
@@ -11,5 +9,7 @@ public interface IPVA {
     double CONS_FERRARI = 3.75;
     double BASEVALUE = 500;
 
-    double CalcularIPVA();
+    void CalcularIPVA(); // Calcular e armazena o falor do IPVA
+    void setIPVA_condition(boolean condition); // Seta se o IPVA foi pago ou nao
+    boolean getIPVA_condition(); // Retorna se o IPVA foi pago ou nao
 }

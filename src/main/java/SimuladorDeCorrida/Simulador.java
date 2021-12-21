@@ -5,16 +5,7 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-/*
-    Autor: José Guilherme Alves dos Santos
-
-    - A validacao de ID's ocorre apenas dentro da classe MenuFunctions 
-      e nao deve ocorrer fora dela.
-    - MenuFunctions eh uma private inner Class, pois ela soh deve existir se a 
-      classe Simulador existir e nao deve ser usada fora dela. Isto tambem
-      evita dubla validacao de variaveis dentro do Simulador.
-    - Somente a classe Simulador deve imprir no terminal.
- */
+// Autor: Jose Guilherme Alves
 
 public final class Simulador {
     private static class MenuFunctions {
@@ -74,25 +65,12 @@ public final class Simulador {
         private final ArrayList<Veiculo> VehicleArrayList = new ArrayList<>();
         // Objeto da classe ID_Class para manipular ID's
         private final ID_Class ID = new ID_Class();
-        private final int MAX_VEHICLES = 20;
+        private static final int MAX_VEHICLES = 20;
         
         // Retorna o tipo de veiculo a partir do ID
-        // Esta funcao nao deve ser usada dentro desta classe
-        public String getVehicleType(int type_id) {
-            try {
-                int index = ID.isValid(type_id);
-                return VehicleArrayList.get(index).getVehicleType();
-            } catch (InvalidIDException e) { return e.toString(); }
-        }
-
-        // Verifica se existe o tipo de veiculo na ArrayList
-        public boolean VehicleArray_containsVehicleType(String VehicleType) {
-            for (int i = 0; i < VehicleArrayList.size(); i++) {
-                if (VehicleType.equals(VehicleArrayList.get(i).getVehicleType())) {
-                    return true;
-                }
-            }
-            return false;
+        public String getVehicleType(int type_id) throws InvalidIDException {
+            int index = ID.isValid(type_id);
+            return VehicleArrayList.get(index).getVehicleType();
         }
 
         // Insere um veiculo na ArrayList
@@ -100,7 +78,7 @@ public final class Simulador {
             Veiculo v_new = null;
             int index;
             
-            if(VehicleArrayList.size() < 20) {
+            if(VehicleArrayList.size() < MAX_VEHICLES) {
                 switch (VehicleType) {
                     case "Bicicleta" -> {
                         v_new = new Bicicleta(ID.Create());
@@ -127,71 +105,94 @@ public final class Simulador {
         }
 
         // Remove um veiculo da arraylist
-        public void RemoveVehicle(int type_id) {
-            try {
+        public void RemoveVehicle(int type_id) 
+                throws VehicleArrayListIsEmptyException, InvalidIDException {
+            if(!VehicleArrayList.isEmpty()) {
                 String VehicleType;
-                int index = ID.isValid(type_id);
+                int index = ID.isValid(type_id); // InvalidIDException
                 VehicleType = VehicleArrayList.get(index).getVehicleType();
 
                 // Veiculo eh removido
                 VehicleArrayList.remove(index);
                 // ID eh removido da lista de ID's validos
-                ID.Remove(type_id);
+                ID.Remove(type_id); // InvalidIDException
 
                 ClearScreen();
                 System.out.printf("Veiculo(%s,ID:%d) removido!\n", VehicleType, type_id);
-            } catch (InvalidIDException e) {}
+            } else { throw new VehicleArrayListIsEmptyException(); }
         }
 
         // Abastece o veiculo
-        public void FuelVehicle(int type_id) {
-            try {
-                int index = ID.isValid(type_id);
-                double fuel;
-                
-                if (VehicleArrayList.get(index) instanceof Bicicleta) {
-                    ClearScreen();
-                    System.out.println("Nao eh possivel abastecer bicicleta");
-                } else {
-                    // Recebe e valida a quantidade de combustivel
-                    ClearScreen();
-                    do {
-                        System.out.printf("Informe a quantidade de combustivel em Litros: ");
-                        fuel = scanner.nextFloat();
-                        if (fuel < 0) {
-                            System.out.println("Valor invalido");
-                        }
-                    } while (fuel < 0);
+        public void FuelVehicle(int type_id) throws InvalidIDException {
+            int index = ID.isValid(type_id);
+            Veiculo v = VehicleArrayList.get(index);
+            double fuel;
 
-                    // Veiculo eh abastecido e isto eh informado ao usuario
-                    VehicleArrayList.get(index).AddFuel(fuel);
-                    ClearScreen();
-                    System.out.printf("%s(ID:%d): Abastecido com %.2fL!\n",
-                            VehicleArrayList.get(index).getVehicleType(),
-                            type_id, fuel);
-                    System.out.println(VehicleArrayList.get(index).toString());
-                }
-                
-            } catch (InvalidIDException | InputMismatchException e) {}
+            if (v instanceof Bicicleta) {
+                ClearScreen();
+                System.out.println("Nao eh possivel abastecer bicicleta");
+            } else {
+                // Recebe e valida a quantidade de combustivel
+                ClearScreen();
+                do {
+                    System.out.printf("Informe a quantidade de combustivel em Litros: ");
+                    try {
+                        fuel = scanner.nextFloat(); // Exception
+                        if (fuel < 0) {
+                            System.out.println("Input Invalido");
+                        }
+                    } catch (InputMismatchException e1) {
+                        fuel = -1;
+                        System.out.println("Input Invalido");
+                    }
+                } while (fuel < 0);
+
+                // Veiculo eh abastecido e isto eh informado ao usuario
+                v.AddFuel(fuel);
+                ClearScreen();
+                System.out.printf("%s(ID:%d): Abastecido com %.2fL!\n",
+                        v.getVehicleType(),
+                        type_id, fuel);
+                System.out.println(v.toString());
+            }
         }
 
         // Imprime os dados de todos os veiculos
-        public void PrintAllVehicles() {
+        public boolean PrintAllVehicles() {
             ClearScreen();
-            System.out.println("Veiculos disponiveis: ");
-            for (int i = 0; i < VehicleArrayList.size(); i++) {
-                System.out.println(VehicleArrayList.get(i).toString());
+            if(!VehicleArrayList.isEmpty()) {
+                System.out.println("Veiculos disponiveis: ");
+                for (int i = 0; i < VehicleArrayList.size(); i++) {
+                    System.out.println(VehicleArrayList.get(i).toString());
+                }
+                return true;
+            } else {
+                System.out.println("Nenhum veiculo disponivel");
+                return false;
             }
         }
 
         // Imprime dados de todos os veiculos por tipo
         public void PrintAllVehicles_perType(String VehicleType) {
+            class Verify { // Verifica se existe o tipo de veiculo na ArrayList
+                public int VehicleArray_containsVehicleType(String VehicleType) {
+                    for (int i = 0; i < VehicleArrayList.size(); i++) {
+                        if (VehicleType.equals(VehicleArrayList.get(i).getVehicleType())) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                }
+            }
+            
+            Verify verify=new Verify();
             Veiculo v;
-
-            if (VehicleArray_containsVehicleType(VehicleType)) {
+            int verify_return = verify.VehicleArray_containsVehicleType(VehicleType);
+            
+            if (verify_return>-1) {
                 ClearScreen();
                 System.out.printf("Veiculos(%s) disponiveis: \n", VehicleType);
-                for (int i = 0; i < VehicleArrayList.size(); i++) {
+                for (int i = verify_return; i < VehicleArrayList.size(); i++) {
                     v = VehicleArrayList.get(i);
                     if (v.getVehicleType().equals(VehicleType)) {
                         System.out.println(v.toString());
@@ -203,247 +204,263 @@ public final class Simulador {
         }
 
         // Esvazia um pneu a partir do ID
-        public void EmptyTire(int type_id) {
+        public void EmptyTire(int type_id) throws InvalidIDException {
             int index_tire;
             int index = ID.isValid(type_id);
+            Veiculo v = VehicleArrayList.get(index);
             boolean was_emptied; // Verifica se o penu foi esvaziado
 
-            if (index > -1) {
-                // Verifica qual tipo de veiculo
-                if (VehicleArrayList.get(index) instanceof Bicicleta
-                        || VehicleArrayList.get(index) instanceof Motocicleta) {
-                    ClearScreen();
-                    System.out.println(VehicleArrayList.get(index).toString());
-                    do {
-                        System.out.printf("Informe o index do pneu a ser esvaziado (0 ou 1): ");
-                        index_tire = scanner.nextInt();
+            // Verifica qual tipo de veiculo
+            if (v instanceof Bicicleta || v instanceof Motocicleta) {
+                ClearScreen();
+                System.out.println(v.toString());
+                do {
+                    System.out.println("Informe o index do pneu (0 ou 1): ");
+                    try {
+                        index_tire = scanner.nextInt(); // Exception
                         if (index_tire < 0 || index_tire > 1) {
-                            System.out.println("Valor invalido");
+                            ClearScreen();
+                            System.out.println("Input Invalido");
                         }
-                    } while (index_tire < 0 || index_tire > 1);
-                } else { // Carro popular ou ferrari
-                    ClearScreen();
-                    System.out.println(VehicleArrayList.get(index).toString());
-                    do {
-                        System.out.printf("Informe o index do pneu a ser esvaziado (0,1,2 ou 3): ");
-                        index_tire = scanner.nextInt();
+                    } catch (InputMismatchException e1) {
+                        index_tire = -1;
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } while (index_tire < 0 || index_tire > 1);
+            } else { // Carro popular ou ferrari
+                ClearScreen();
+                System.out.println(v.toString());
+                do {
+                    System.out.println("Informe o index do pneu (0,1,2 ou 3): ");
+                    try {
+                        index_tire = scanner.nextInt(); // Exception
                         if (index_tire < 0 || index_tire > 3) {
-                            System.out.println("Valor invalido");
+                            ClearScreen();
+                            System.out.println("Input Invalido");
                         }
-                    } while (index_tire < 0 || index_tire > 3);
-                }
-                was_emptied = VehicleArrayList.get(index).EmptyTire(index_tire);
-                ClearScreen();
-                if (was_emptied == true) {
-                    System.out.printf("%s(ID:%d): Pneu %d esvaziado!\n",
-                            VehicleArrayList.get(index).getVehicleType(), type_id, index_tire);
-                    System.out.println(VehicleArrayList.get(index).toString());
-                } else {
-                    System.out.printf("Pneu %d jah estava vazio\n", index_tire);
-                }
+                    } catch (InputMismatchException e1) {
+                        index_tire = -1;
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } while (index_tire < 0 || index_tire > 3);
+            }
+            // O pneu eh evaziado
+            was_emptied = v.EmptyTire(index_tire);
+
+            ClearScreen();
+            if (was_emptied) {
+                System.out.printf("(%s | ID: %d): Pneu %d esvaziado!\n",
+                        v.getVehicleType(), type_id, index_tire);
+                System.out.println(v.toString());
             } else {
-                ClearScreen();
-                System.out.println("ID nao encontrado");
+                System.out.printf("Pneu %d jah estava vazio\n", index_tire);
             }
         }
 
         // Calibra um pneu n a partir do ID
-        public void CalibrateTire(int type_id) {
+        public void CalibrateTire(int type_id) throws InvalidIDException {
             int index_tire;
             int index = ID.isValid(type_id);
+            Veiculo v = VehicleArrayList.get(index);
             boolean was_calibrated; // Verifica se o pneu foi calibrado
-
-            if (index > -1) {
-                if (VehicleArrayList.get(index) instanceof Bicicleta
-                        || VehicleArrayList.get(index) instanceof Motocicleta) {
-                    ClearScreen();
-                    System.out.println(VehicleArrayList.get(index).toString());
-                    do {
-                        System.out.printf("Informe o index do pneu a ser calibrado (0 ou 1): ");
-                        index_tire = scanner.nextInt();
+            
+            if (v instanceof Bicicleta || v instanceof Motocicleta) {
+                ClearScreen();
+                System.out.println(v.toString());
+                System.out.println("Informe o index do pneu (0 ou 1): ");
+                do {
+                    try {
+                        index_tire = scanner.nextInt(); // Exception
                         if (index_tire < 0 || index_tire > 1) {
-                            System.out.println("Valor invalido");
+                            ClearScreen();
+                            System.out.println("Input Invalido");
                         }
-                    } while (index_tire < 0 || index_tire > 1);
-                } else { // Carro popular ou Ferrari
-                    ClearScreen();
-                    System.out.println(VehicleArrayList.get(index).toString());
-                    do {
-                        System.out.printf("Informe o index do pneu a ser calibrado (0,1,2 ou 3): ");
-                        index_tire = scanner.nextInt();
+                    } catch (InputMismatchException e1) {
+                        index_tire = -1;
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } while (index_tire < 0 || index_tire > 1);
+            } else { // Carro popular ou Ferrari
+                ClearScreen();
+                System.out.println(v.toString());
+                System.out.printf("Informe o index do pneu (0,1,2 ou 3): ");
+                do {
+                    try {
+                        index_tire = scanner.nextInt(); // Exception
                         if (index_tire < 0 || index_tire > 3) {
-                            System.out.println("Valor invalido");
+                            ClearScreen();
+                            System.out.println("Input Invalido");
                         }
-                    } while (index_tire < 0 || index_tire > 3);
-                }
-
-                was_calibrated = VehicleArrayList.get(index).CalibrateTire(index_tire);
-                ClearScreen();
-                if (was_calibrated == true) {
-                    System.out.printf("%s(ID:%d): Pneu %d calibrado!\n",
-                            VehicleArrayList.get(index).getVehicleType(),
-                            type_id, index_tire);
-                    System.out.println(VehicleArrayList.get(index).toString());
-                } else {
-                    System.out.printf("%s(ID:%d): Pneu %d jah estava calibrado\n",
-                            VehicleArrayList.get(index).getVehicleType(),
-                            type_id, index_tire);
-                }
+                    } catch (InputMismatchException e1) {
+                        index_tire = -1;
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } while (index_tire < 0 || index_tire > 3);
+            }
+            was_calibrated = v.CalibrateTire(index_tire);
+            ClearScreen();
+            if (was_calibrated == true) {
+                System.out.printf("(%s | ID: %d): Pneu %d calibrado!\n",
+                        v.getVehicleType(),
+                        type_id, index_tire);
+                System.out.println(v.toString());
             } else {
-                ClearScreen();
-                System.out.println("ID nao encontrado");
+                System.out.printf("%s(ID:%d): Pneu %d jah estava calibrado\n",
+                        v.getVehicleType(),
+                        type_id, index_tire);
             }
         }
 
         // Calibra todos os pneus de um veiculo a partir do ID
-        public void CalibrateAllTires(int type_id) {
+        public void CalibrateAllTires(int type_id) throws InvalidIDException {
             int index = ID.isValid(type_id);
-
-            if (index > -1) {
-                VehicleArrayList.get(index).CalibrateAllTires();
-                ClearScreen();
-                System.out.printf("%s(ID:%d): Todos os pneus foram calibrados!\n",
-                        VehicleArrayList.get(index).getVehicleType(), type_id);
-                System.out.println(VehicleArrayList.get(index).toString());
-            } else {
-                System.out.println("ID nao encontrado");
-            }
+            Veiculo v = VehicleArrayList.get(index);
+            
+            v.CalibrateAllTires();
+            ClearScreen();
+            System.out.printf("(%s | ID: %d): Todos os pneus foram calibrados!\n",
+                    v.getVehicleType(), type_id);
+            System.out.println(v.toString());
         }
 
         // Move um veiculo a partir do ID
-        public void MoveVehicle(int type_id) {
-            int movimentos;
-            int counter = 0; // Conta situacoes favoraveis ao movimento do veiculo
+        public void MoveVehicle(int type_id) throws InvalidIDException {
+            int moves;
             boolean[] condition; // Vetor booleano para verificar se o movimento ocorreu
-            int index = ID.isValid(type_id);
-
-            if (index > -1) {
-                // Recebe e valida a quantidade de movimentos
-                do {
+            int index = ID.isValid(type_id); // InvalidIDException
+            Veiculo v = VehicleArrayList.get(index);
+            
+            // Recebe e valida a quantidade de moves
+            ClearScreen();
+            System.out.println("Cada unidade de movimento equivale a: ");
+            System.out.printf("%d Blocos para %s\n",
+                    v.getBlocks_perMovement(),
+                    v.getVehicleType());
+            System.out.println("Informe a quantidade de unidades de movimentos: ");
+            do {
+                try {
+                    moves = scanner.nextInt(); // Exception
+                    if (moves < 0) {
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } catch (InputMismatchException e) {
+                    moves = -1;
                     ClearScreen();
-                    System.out.println("Cada movimento equivalem a: ");
-                    System.out.printf("%d blocos para %s\n",
-                            VehicleArrayList.get(index).getBlocks_perMovement(),
-                            VehicleArrayList.get(index).getVehicleType());
-                    System.out.printf("Informe a quantidade de movimentos: ");
-                    movimentos = scanner.nextInt();
-                    if (movimentos < 0) {
-                        System.out.println("Valor invalido");
-                    }
-                } while (movimentos < 0);
+                    System.out.println("Input Invalido");
+                }
+                
+            } while (moves < 0);
 
-                // Armazena o vetor de boolean de retorno da funcao Move
-                condition = VehicleArrayList.get(index).Move(movimentos);
+            // Armazena o vetor de boolean de retorno da funcao Move
+            condition = v.Move(moves * v.getBlocks_perMovement());
 
-                ClearScreen();
-                if (VehicleArrayList.get(index) instanceof Bicicleta) {
-                    // Verifica se o movimento ocorreu
-                    if (condition[0]) {
-                        System.out.printf("%s(ID:%d): Movido em %d blocos\n",
-                                VehicleArrayList.get(index).getVehicleType(),
-                                VehicleArrayList.get(index).getID(),
-                                movimentos * VehicleArrayList.get(index).getBlocks_perMovement());
-                    } else {
-                        System.out.printf("%s(ID:%d): Pneus nao calibrados\n",
-                                VehicleArrayList.get(index).getVehicleType(),
-                                VehicleArrayList.get(index).getID());
-                    }
-                } else { // Ferrari, Carro Popular e Motocicleta
-                    System.out.printf("%s(ID:%d): ",
-                            VehicleArrayList.get(index).getVehicleType(),
-                            VehicleArrayList.get(index).getID());
+            ClearScreen();
+            if (v instanceof Bicicleta) {
+                // Verifica se o movimento ocorreu
+                if (condition[0]) {
+                    System.out.printf("(%s | ID: %d): Movido em %d blocos\n",
+                            v.getVehicleType(),
+                            v.getID(),
+                            moves * v.getBlocks_perMovement());
+                } else {
+                    System.out.printf("(%s | ID: %d): Pneus nao calibrados\n",
+                            v.getVehicleType(),
+                            v.getID());
+                }
+            } else { // Ferrari, Carro Popular e Motocicleta
+                System.out.printf("(%s | ID: %d): ",
+                        v.getVehicleType(),
+                        v.getID());
 
-                    // Verifica o vetor de boolean para mostrar quais os problemas
-                    if (!condition[0]) {
-                        System.out.print("Pneus nao calibrados. ");
-                    } else {
-                        counter++;
-                    }
+                // Verifica o vetor de boolean para mostrar quais os problemas
+                if (condition[0]) { // Movimento ocorreu
+                    System.out.printf("Movido em %d blocos!",
+                            moves * v.getBlocks_perMovement());
+                } else { // contition[0] == false
                     if (!condition[1]) {
-                        System.out.print("IPVA nao pago. ");
-                    } else {
-                        counter++;
+                        System.out.print("Pneus nao calibrados | ");
                     }
                     if (!condition[2]) {
-                        System.out.print("Combustivel insuficiente. ");
-                    } else {
-                        counter++;
+                        System.out.print("IPVA nao pago | ");
                     }
-
-                    if (counter == 3) { // Movimento ocorreu
-                        System.out.printf("Movido em %d blocos!",
-                                movimentos * VehicleArrayList.get(index).getBlocks_perMovement());
+                    if (!condition[3]) {
+                        System.out.print("Combustivel insuficiente ");
                     }
-
-                    System.out.print("\n");
                 }
-            } else {
-                ClearScreen();
-                System.out.println("ID nao encontrado");
+                System.out.print("\n");
             }
         }
 
         // Move todos os veiculos
         public void MoveAllVehicles() {
-            int movimentos;
+            int moves = -1;
             boolean[] condition;
-            int counter;
-
-            // Recebe e valida a quantidade de movimentos
+            Veiculo v;
+            
+            // Recebe e valida a quantidade de moves
+            ClearScreen();
             do {
-                System.out.println("Cada movimento equivalem a: ");
-                System.out.println("2 blocos para Bicicleta");
-                System.out.println("3 blocos para Motocicleta");
-                System.out.println("5 blocos para Carro Popular");
-                System.out.println("10 blocos para Ferrari");
-                System.out.printf("Informe a quantidade de movimentos: ");
-                movimentos = scanner.nextInt();
-                if (movimentos < 0) {
-                    System.out.println("Valor invalido");
+                System.out.println("""
+                                   Veiculos se movimentam em blocos,
+                                   Cada unidade de movimento equivale a:
+                                   2 Blocos para Bicicleta
+                                   3 Blocos para Motocicleta
+                                   5 Blocos para Carro Popular
+                                   10 Blocos para Ferrari
+                                   """);
+                System.out.println("Informe a quantidade de movimentos: ");
+                try {
+                    moves = scanner.nextInt();
+                    if (moves < 0) {
+                        ClearScreen();
+                        System.out.println("Input Invalido");
+                    }
+                } catch (InputMismatchException e1) {
+                    ClearScreen();
+                    System.out.println("Input Invalido");
                 }
-            } while (movimentos < 0);
+            } while (moves < 0);
 
             ClearScreen();
             for (int i = 0; i < VehicleArrayList.size(); i++) {
-                counter = 0; // Conta situacoes favoraveis ao movimento do veiculo
-                condition = VehicleArrayList.get(i).Move(movimentos);
-                if (VehicleArrayList.get(i) instanceof Bicicleta) {
+                v = VehicleArrayList.get(i); // Pega o veiculo
+                condition = v.Move(moves); // Tenta relar o movimento
+                if (v instanceof Bicicleta) {
                     // Verifica se o movimento ocorreu
                     if (condition[0]) {
                         System.out.printf("%s(ID:%d): Movido em %d blocos\n",
-                                VehicleArrayList.get(i).getVehicleType(),
-                                VehicleArrayList.get(i).getID(),
-                                movimentos * VehicleArrayList.get(i).getBlocks_perMovement());
+                                v.getVehicleType(),
+                                v.getID(),
+                                moves * v.getBlocks_perMovement());
                     } else {
                         System.out.printf("%s(ID:%d): Pneus nao calibrados\n",
-                                VehicleArrayList.get(i).getVehicleType(),
-                                VehicleArrayList.get(i).getID());
+                                v.getVehicleType(),
+                                v.getID());
                     }
                 } else { // Ferrari, Carro Popular e Motocicleta
                     System.out.printf("%s(ID:%d): ",
-                            VehicleArrayList.get(i).getVehicleType(),
-                            VehicleArrayList.get(i).getID());
+                            v.getVehicleType(),
+                            v.getID());
 
                     // Verifica o vetor de boolean para mostrar quais os problemas
-                    if (!condition[0]) {
-                        System.out.print("Pneus nao calibrados. ");
-                    } else {
-                        counter++;
-                    }
-                    if (!condition[1]) {
-                        System.out.print("IPVA nao pago. ");
-                    } else {
-                        counter++;
-                    }
-                    if (!condition[2]) {
-                        System.out.print("Combustivel insuficiente.");
-                    } else {
-                        counter++;
-                    }
-
-                    if (counter == 3) { // Movimento ocorreu
+                    if (condition[0]) { // Movimento ocorreu
                         System.out.printf("Movido em %d blocos!",
-                                movimentos * VehicleArrayList.get(i).getBlocks_perMovement());
+                                moves * v.getBlocks_perMovement());
+                    } else { // contition[0] == false
+                        if (!condition[1]) {
+                            System.out.print("Pneus nao calibrados | ");
+                        }
+                        if (!condition[2]) {
+                            System.out.print("IPVA nao pago | ");
+                        }
+                        if (!condition[3]) {
+                            System.out.print("Combustivel insuficiente ");
+                        }
                     }
                     System.out.print("\n");
                 }
@@ -509,7 +526,7 @@ public final class Simulador {
 
         // Funcao para limpar o teminal
         public void ClearScreen() {
-            for (int i = 0; i <= 20; ++i) {
+            for (int i = 0; i <= 30; ++i) {
                 System.out.println();
             }
         }
@@ -541,16 +558,15 @@ public final class Simulador {
                              |12| Encerrar aplicacao 
                               """);
             System.out.println("Digite a opcao na proxima linha: ");
-            menu = 100;
             try {
-                menu = scanner.nextInt();
+                menu = scanner.nextInt(); // Exception
             } catch (InputMismatchException e) { 
+                menu = 100;
                 scanner.nextLine();
             }
             
             switch (menu) {
-                case 1 -> {
-                    // Inserir veiculo
+                case 1 -> { // Inserir veiculo
                     option = 1;
                     do {
                         if (option == 1) { // Inserir
@@ -561,9 +577,14 @@ public final class Simulador {
                                                |2| Carro Popular
                                                |3| Motocicleta
                                                |4| Ferrari
-                                                   """);
+                                               """);
                             System.out.println("Digite a opcao na proxima linha: ");
-                            option = scanner.nextInt();
+                            try {
+                                option = scanner.nextInt(); // Exception
+                            } catch (InputMismatchException e1) {
+                                option = 5;
+                                scanner.nextLine();
+                            }
                             try {
                                 // Valida a entrada
                                 switch (option) {
@@ -581,79 +602,68 @@ public final class Simulador {
                                         System.out.println("Opcao invalida");
                                     }
                                 }
-                            } catch (MaxVehicleCapacityReachedException e) {
+                            } catch (MaxVehicleCapacityReachedException e1) {
                                 Simulador.ClearScreen();
-                                System.out.println(e);
-                                try {
-                                    Thread.sleep(2500);
-                                } catch (InterruptedException ie) {}
+                                System.out.println(e1);
                             }
                         } else if (option != 2) {
                             Simulador.ClearScreen();
-                            System.out.println("Opcao invalida");
+                            System.out.println("Opcao Invalida");
                         }
 
                         System.out.println("""
                                            Opcoes:
                                            |1| Incluir outro veiculo
                                            |2| Voltar para o menu
-                                               """);
+                                           """);
                         System.out.printf("Digite a opcao na proxima linha: ");
-                        option = scanner.nextInt();
+                        try {
+                            option = scanner.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 3;
+                        }
                     } while (option != 2);
                 }
 
-                case 2 -> {
-                    // Remover veiculo
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 1;
-                        do {
-                            if (option == 1) { // Remover
-                                if (!Simulador.VehicleArrayList.isEmpty()) {
-                                    try {
-                                        Simulador.PrintAllVehicles();
-                                        System.out.println("Informe o ID na proxima linha: ");
-                                        type_id = scanner.nextInt();
-                                        Simulador.RemoveVehicle(type_id);
-                                    } catch (InputMismatchException e) {}
-                                } else {
-                                    Simulador.ClearScreen();
-                                    System.out.println("Nenhum veiculo encontrado");
+                case 2 -> { // Remover veiculo
+                    boolean b;
+                    option = 1;
+                    do {
+                        if (option == 1) { // Remover
+                            try {
+                                b = Simulador.PrintAllVehicles();
+                                if(b) {
+                                    System.out.println("Informe o ID na proxima linha: ");
+                                    type_id = scanner.nextInt(); // Exception
+                                    Simulador.RemoveVehicle(type_id); // Exception
                                 }
-                            } else if (option == 'b') { // Imprimir dados de todos os veiculos
-                                if (!Simulador.VehicleArrayList.isEmpty()) {
-                                    Simulador.PrintAllVehicles();
-                                } else {
-                                    System.out.println("Nenhum veiculo encontrado");
-                                }
-                            } else if (option != 'c') {
+                            } catch (InputMismatchException e1) {
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                type_id = 200;
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException | VehicleArrayListIsEmptyException e2) {
+                                System.out.println(e2);
                             }
+                        } else if (option == 2) { // Imprimir dados de todos os veiculos
+                            Simulador.PrintAllVehicles();
+                        } else if (option != 3) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
 
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Remover outro veiculo ");
-                            System.out.println("b: Imprimir dados de todos os veiculos ");
-                            System.out.println("c: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = scanner.next().charAt(0);
-
-                        } while (option != 'c');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = scanner.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
+                        System.out.println("""
+                                           Opcoes:
+                                           |1| Remover outro veiculo
+                                           |2| Imprimir dados de todos os veiculos
+                                           |3| Voltar para o menu
+                                           """);
+                        System.out.printf("Digite a opcao na proxima linha: ");
+                        try {
+                            option = scanner.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 4;
+                        }
+                    } while (option != 3);
                 }
 
                 case 3 -> {

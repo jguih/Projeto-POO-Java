@@ -2,14 +2,13 @@ package SimuladorDeCorrida;
 
 import java.util.Arrays;
 
-/*
-    Aluno: José Guilherme Alves dos Santos
-    RA: 2157187
- */
+// Autor: Jose Guilherme Alves
+
 public abstract class VeiculoMotorizado extends Veiculo {
 
     private double fuel;
-    private double IPVA;
+    protected double ipva;
+    protected boolean ipva_condition; // true = pago, false = nao pago
 
     public VeiculoMotorizado(int ID, int qtdRodas) {
         super(ID, qtdRodas);
@@ -27,11 +26,9 @@ public abstract class VeiculoMotorizado extends Veiculo {
     }
 
     // Verifica se eh possivel mover veiculo pela quantidade de combustivel
-    public final boolean Fuel_isEnough(int movimentos,
-            int blocks_perMovement,
-            double fuelCost_perBlock) {
+    public final boolean Fuel_isEnough(int blocks, double fuelCost_perBlock) {
         // (movimentos*blocos*gasto_por_bloco) = n Litros de combustivel gasto
-        return (fuel - (movimentos * blocks_perMovement * fuelCost_perBlock)) >= 0;
+        return (fuel - (blocks * fuelCost_perBlock)) >= 0;
     }
 
     @Override
@@ -41,32 +38,20 @@ public abstract class VeiculoMotorizado extends Veiculo {
         }
     }
 
-    /* 
-        A funcao Move retorna um vetor de boolean de tamanho 3, 
-        verificando cada condicao na ordem: 
-        Calibragem de todos os pneus, IPVA e Combustivel suficiente.
-     */
     @Override
-    public boolean[] Move(int movimentos) { // Movimenta o veiculo
-        boolean[] BinaryMove = new boolean[3];
-        boolean[] Was_Moved = {true, true, true};
-
-        BinaryMove[0] = Tire_isAllCalibrated(); // Todos os pneus calibrados
-        BinaryMove[1] = IPVA == 0; // IPVA pago
-        BinaryMove[2] = Fuel_isEnough(movimentos, getBlocks_perMovement(), getFuelCost_perBlock()); // Combustivel suficiente
-        if (Arrays.equals(BinaryMove, Was_Moved)) // Movimento pode ocorrer
-        {
-            addDistanciaPercorrida(movimentos * getBlocks_perMovement());
-            RemoveFuel(movimentos * getBlocks_perMovement() * getFuelCost_perBlock());
+    public boolean[] Move(int blocks) { // Movimenta o veiculo
+        boolean[] BinaryMove = new boolean[4];
+        boolean[] Was_Moved = {false, true, true, true};
+        
+        BinaryMove[0] = false; // Condicao geral do movimento (ocorreu ou nao)
+        BinaryMove[1] = Tire_isAllCalibrated(); // Todos os pneus calibrados
+        BinaryMove[2] = ipva_condition; // ipva
+        BinaryMove[3] = Fuel_isEnough(blocks, getFuelCost_perBlock()); // Combustivel suficiente
+        if (Arrays.equals(BinaryMove, Was_Moved)) { // Movimento pode ocorrer
+            BinaryMove[0] = true; // Movimento pode ocorrer
+            addDistanciaPercorrida(blocks);
+            RemoveFuel(blocks * getFuelCost_perBlock());
         }
         return BinaryMove;
-    }
-
-    public final double getIPVA() {
-        return IPVA;
-    }
-
-    public final void setIPVA(double IPVA) {
-        this.IPVA = IPVA;
     }
 }
