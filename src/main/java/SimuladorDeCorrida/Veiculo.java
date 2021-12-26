@@ -6,18 +6,18 @@ public abstract class Veiculo {
 
     private final int id;
     private int distanciaPercorrida;
-    private final int wheel_amount;
-    private final Roda[] wheels;
+    private final int roda_quantidade;
+    private final Roda[] rodas;
 
-    public Veiculo(int ID, int RODAS_AMOUNT) {
-        this.id = ID;
+    public Veiculo(int id, int roda_quantidade) {
+        this.id = id;
         distanciaPercorrida = 0;
-        this.wheel_amount = RODAS_AMOUNT;
-        wheels = new Roda[RODAS_AMOUNT];
+        this.roda_quantidade = roda_quantidade;
+        rodas = new Roda[roda_quantidade];
 
         // Inicia as rodas
-        for (int i = 0; i < RODAS_AMOUNT; i++) {
-            wheels[i] = new Roda();
+        for (int i = 0; i < roda_quantidade; i++) {
+            rodas[i] = new Roda();
         }
     }
 
@@ -30,11 +30,11 @@ public abstract class Veiculo {
     }
 
     public final int getQtdRodas() {
-        return wheel_amount;
+        return roda_quantidade;
     }
 
     public final boolean getCalibragem(int index) {
-        return wheels[index].getCalibragem();
+        return rodas[index].getCalibragem();
     }
 
     public final void setDistanciaPercorrida(int distanciaPercorrida) {
@@ -47,8 +47,8 @@ public abstract class Veiculo {
 
     public final boolean Tire_isAllCalibrated() // Verifica se todos os pneus estao calibrados
     {
-        for (int i = 0; i < wheel_amount; i++) {
-            if (wheels[i].getCalibragem() == false) {
+        for (int i = 0; i < roda_quantidade; i++) {
+            if (rodas[i].getCalibragem() == false) {
                 return false;
             }
         }
@@ -57,18 +57,18 @@ public abstract class Veiculo {
 
     public final void CalibrateAllTires() // Calibra todos os pneus
     {
-        for (int i = 0; i < wheel_amount; i++) {
-            if (wheels[i].getCalibragem() == false) {
-                wheels[i].setCalibragem(true);
+        for (int i = 0; i < roda_quantidade; i++) {
+            if (rodas[i].getCalibragem() == false) {
+                rodas[i].setCalibragem(true);
             }
         }
     }
 
     public final boolean CalibrateTire(int n) // Calibra um pneu n
     {
-        if (n >= 0 && n < wheel_amount) {
+        if (n >= 0 && n < roda_quantidade) {
             if (getCalibragem(n) == false) {
-                wheels[n].setCalibragem(true);
+                rodas[n].setCalibragem(true);
                 return true; // Pneu calibrado
             } else {
                 return false; // Pneu nao calibrado
@@ -79,18 +79,18 @@ public abstract class Veiculo {
     }
 
     public final void EmptyAllTires() { // Esvazia todos os pneus
-        for (int i = 0; i < wheel_amount; i++) {
-            if (wheels[i].getCalibragem() == true) {
-                wheels[i].setCalibragem(false);
+        for (int i = 0; i < roda_quantidade; i++) {
+            if (rodas[i].getCalibragem() == true) {
+                rodas[i].setCalibragem(false);
             }
         }
     }
 
     public final boolean EmptyTire(int n) // Esvazia um pneu n
     {
-        if (n >= 0 && n < wheel_amount) {
+        if (n >= 0 && n < roda_quantidade) {
             if (getCalibragem(n) == true) {
-                wheels[n].setCalibragem(false);
+                rodas[n].setCalibragem(false);
                 return true; // Pneu esvaziado
             } else {
                 return false; // Pneu n jah esvaziado

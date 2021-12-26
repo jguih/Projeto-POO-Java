@@ -39,9 +39,9 @@ public final class CarroPopular extends VeiculoMotorizado implements IPVA {
     public String toString() { // Retorna uma string com informacoes do veiculo
         String string = String.format("CarroPopular | ID: %d | Distancia Percorrida: %d blocos |"
                 + " Combustivel: %.2fL | IPVA: %s | Rodas: [%d%d%d%d] ", getID(), getDistanciaPercorrida(),
-                getFuel(), getIPVA_condition() ? "Pago" : "Nao Pago",
-                getCalibragem(0) == true ? 1 : 0, getCalibragem(1) == true ? 1 : 0,
-                getCalibragem(2) == true ? 1 : 0, getCalibragem(3) == true ? 1 : 0);
+                getFuel(), ipva_condition ? "Pago" : "Nao Pago",
+                getCalibragem(0) ? 1 : 0, getCalibragem(1) ? 1 : 0,
+                getCalibragem(2) ? 1 : 0, getCalibragem(3) ? 1 : 0);
         return string;
     }
 
@@ -53,12 +53,5 @@ public final class CarroPopular extends VeiculoMotorizado implements IPVA {
     @Override
     public void setIPVA_condition(boolean condition) {
         ipva_condition = condition;
-    }
-
-    @Override
-    public boolean getIPVA_condition() {
-        return ipva_condition;
-    }
-    
-    
+    }    
 }

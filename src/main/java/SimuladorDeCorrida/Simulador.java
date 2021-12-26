@@ -158,22 +158,22 @@ public final class Simulador {
         }
 
         // Imprime os dados de todos os veiculos
-        public boolean PrintAllVehicles() {
-            ClearScreen();
-            if(!VehicleArrayList.isEmpty()) {
-                System.out.println("Veiculos disponiveis: ");
-                for (int i = 0; i < VehicleArrayList.size(); i++) {
-                    System.out.println(VehicleArrayList.get(i).toString());
-                }
-                return true;
-            } else {
-                System.out.println("Nenhum veiculo disponivel");
-                return false;
+        public boolean PrintAllVehicles() throws VehicleArrayListIsEmptyException {
+            
+            if(VehicleArrayList.isEmpty()) {
+                throw new VehicleArrayListIsEmptyException();
             }
+            
+            ClearScreen();
+            System.out.println("Veiculos disponiveis: ");
+            for (int i = 0; i < VehicleArrayList.size(); i++) {
+                System.out.println(VehicleArrayList.get(i).toString());
+            }
+            return true;
         }
 
         // Imprime dados de todos os veiculos por tipo
-        public void PrintAllVehicles_perType(String VehicleType) {
+        public void PrintAllVehicles_perType(String VehicleType) { 
             class Verify { // Verifica se existe o tipo de veiculo na ArrayList
                 public int VehicleArray_containsVehicleType(String VehicleType) {
                     for (int i = 0; i < VehicleArrayList.size(); i++) {
@@ -224,6 +224,7 @@ public final class Simulador {
                         }
                     } catch (InputMismatchException e1) {
                         index_tire = -1;
+                        input.nextLine();
                         ClearScreen();
                         System.out.println("Input Invalido");
                     }
@@ -241,6 +242,7 @@ public final class Simulador {
                         }
                     } catch (InputMismatchException e1) {
                         index_tire = -1;
+                        input.nextLine();
                         ClearScreen();
                         System.out.println("Input Invalido");
                     }
@@ -251,7 +253,7 @@ public final class Simulador {
 
             ClearScreen();
             if (was_emptied) {
-                System.out.printf("(%s | ID: %d): Pneu %d esvaziado!\n",
+                System.out.printf("(%s | ID:%d): Pneu %d esvaziado!\n",
                         v.getVehicleType(), type_id, index_tire);
                 System.out.println(v.toString());
             } else {
@@ -279,6 +281,7 @@ public final class Simulador {
                         }
                     } catch (InputMismatchException e1) {
                         index_tire = -1;
+                        input.nextLine();
                         ClearScreen();
                         System.out.println("Input Invalido");
                     }
@@ -286,7 +289,7 @@ public final class Simulador {
             } else { // Carro popular ou Ferrari
                 ClearScreen();
                 System.out.println(v.toString());
-                System.out.printf("Informe o index do pneu (0,1,2 ou 3): ");
+                System.out.println("Informe o index do pneu (0,1,2 ou 3): ");
                 do {
                     try {
                         index_tire = input.nextInt(); // Exception
@@ -296,6 +299,7 @@ public final class Simulador {
                         }
                     } catch (InputMismatchException e1) {
                         index_tire = -1;
+                        input.nextLine();
                         ClearScreen();
                         System.out.println("Input Invalido");
                     }
@@ -304,12 +308,12 @@ public final class Simulador {
             was_calibrated = v.CalibrateTire(index_tire);
             ClearScreen();
             if (was_calibrated == true) {
-                System.out.printf("(%s | ID: %d): Pneu %d calibrado!\n",
+                System.out.printf("(%s | ID:%d): Pneu %d calibrado!\n",
                         v.getVehicleType(),
                         type_id, index_tire);
                 System.out.println(v.toString());
             } else {
-                System.out.printf("%s(ID:%d): Pneu %d jah estava calibrado\n",
+                System.out.printf("(%s | ID:%d): Pneu %d jah estava calibrado\n",
                         v.getVehicleType(),
                         type_id, index_tire);
             }
@@ -322,17 +326,22 @@ public final class Simulador {
             
             v.CalibrateAllTires();
             ClearScreen();
-            System.out.printf("(%s | ID: %d): Todos os pneus foram calibrados!\n",
+            System.out.printf("(%s | ID:%d): Todos os pneus foram calibrados!\n",
                     v.getVehicleType(), type_id);
             System.out.println(v.toString());
         }
 
         // Move um veiculo a partir do ID
-        public void MoveVehicle(int type_id) throws InvalidIDException {
+        public void MoveVehicle(int type_id) 
+                throws InvalidIDException, VehicleArrayListIsEmptyException {
             int moves;
             boolean[] condition; // Vetor booleano para verificar se o movimento ocorreu
             int index = ID.isValid(type_id); // InvalidIDException
             Veiculo v = VehicleArrayList.get(index);
+            
+            if (VehicleArrayList.isEmpty()) {
+                throw new VehicleArrayListIsEmptyException();
+            }
             
             // Recebe e valida a quantidade de moves
             ClearScreen();
@@ -350,6 +359,7 @@ public final class Simulador {
                     }
                 } catch (InputMismatchException e) {
                     moves = -1;
+                    input.nextLine();
                     ClearScreen();
                     System.out.println("Input Invalido");
                 }
@@ -363,17 +373,17 @@ public final class Simulador {
             if (v instanceof Bicicleta) {
                 // Verifica se o movimento ocorreu
                 if (condition[0]) {
-                    System.out.printf("(%s | ID: %d): Movido em %d blocos\n",
+                    System.out.printf("(%s | ID:%d): Movido em %d blocos\n",
                             v.getVehicleType(),
                             v.getID(),
                             moves * v.getBlocks_perMovement());
                 } else {
-                    System.out.printf("(%s | ID: %d): Pneus nao calibrados\n",
+                    System.out.printf("(%s | ID:%d): Pneus nao calibrados\n",
                             v.getVehicleType(),
                             v.getID());
                 }
             } else { // Ferrari, Carro Popular e Motocicleta
-                System.out.printf("(%s | ID: %d): ",
+                System.out.printf("(%s | ID:%d): ",
                         v.getVehicleType(),
                         v.getID());
 
@@ -381,12 +391,18 @@ public final class Simulador {
                 if (condition[0]) { // Movimento ocorreu
                     System.out.printf("Movido em %d blocos!",
                             moves * v.getBlocks_perMovement());
-                } else { // contition[0] == false
+                } else {
                     if (!condition[1]) {
-                        System.out.print("Pneus nao calibrados | ");
+                        System.out.print("Pneus nao calibrados");
+                        if(!condition[2] || !condition[3]) {
+                            System.out.print(" | ");
+                        }
                     }
                     if (!condition[2]) {
-                        System.out.print("IPVA nao pago | ");
+                        System.out.print("IPVA nao pago ");
+                        if(!condition[3]) {
+                            System.out.print(" | ");
+                        }
                     }
                     if (!condition[3]) {
                         System.out.print("Combustivel insuficiente ");
@@ -397,10 +413,14 @@ public final class Simulador {
         }
 
         // Move todos os veiculos
-        public void MoveAllVehicles() {
+        public void MoveAllVehicles() throws VehicleArrayListIsEmptyException {
             int moves = -1;
             boolean[] condition;
             Veiculo v;
+
+            if(VehicleArrayList.isEmpty()) {
+                throw new VehicleArrayListIsEmptyException();
+            }
             
             // Recebe e valida a quantidade de moves
             ClearScreen();
@@ -416,20 +436,21 @@ public final class Simulador {
                 System.out.println("Informe a quantidade de movimentos: ");
                 try {
                     moves = input.nextInt();
-                    if (moves < 0) {
+                    if (moves <= 0) {
                         ClearScreen();
                         System.out.println("Input Invalido");
                     }
                 } catch (InputMismatchException e1) {
+                    input.nextLine();
                     ClearScreen();
                     System.out.println("Input Invalido");
                 }
-            } while (moves < 0);
+            } while (moves <= 0);
 
             ClearScreen();
             for (int i = 0; i < VehicleArrayList.size(); i++) {
                 v = VehicleArrayList.get(i); // Pega o veiculo
-                condition = v.Move(moves); // Tenta relar o movimento
+                condition = v.Move(moves); // Tenta realizar o movimento
                 if (v instanceof Bicicleta) {
                     // Verifica se o movimento ocorreu
                     if (condition[0]) {
@@ -453,10 +474,16 @@ public final class Simulador {
                                 moves * v.getBlocks_perMovement());
                     } else { // contition[0] == false
                         if (!condition[1]) {
-                            System.out.print("Pneus nao calibrados | ");
+                            System.out.print("Pneus nao calibrados");
+                            if (!condition[2] || !condition[3]) {
+                                System.out.print(" | ");
+                            }
                         }
                         if (!condition[2]) {
-                            System.out.print("IPVA nao pago | ");
+                            System.out.print("IPVA nao pago ");
+                            if (!condition[3]) {
+                                System.out.print(" | ");
+                            }
                         }
                         if (!condition[3]) {
                             System.out.print("Combustivel insuficiente ");
@@ -468,8 +495,13 @@ public final class Simulador {
         }
 
         // Imprime a pista de corrida
-        public void PrintRoad() {
+        public void PrintRoad() throws VehicleArrayListIsEmptyException {
             int d;
+            
+            if(VehicleArrayList.isEmpty()) {
+                throw new VehicleArrayListIsEmptyException();
+            }
+            
             for (int i = 0; i < VehicleArrayList.size(); i++) {
                 d = VehicleArrayList.get(i).getDistanciaPercorrida();
                 switch (VehicleArrayList.get(i).getVehicleType()) {
@@ -538,7 +570,6 @@ public final class Simulador {
         int option; // Opcao dentro das categorias do menu
         int menu; // Navegador do menu
         int type_id; // ID digitado pelo usuario
-        boolean vehicleArrayListIsNotEmpty; // Verifica se a arrayList nao estah vazia
 
         do {
             System.out.print("""
@@ -630,23 +661,26 @@ public final class Simulador {
                     option = 1;
                     do {
                         if (option == 1) { // Remover
-                            vehicleArrayListIsNotEmpty = Simulador.PrintAllVehicles();
-                            if (vehicleArrayListIsNotEmpty) { // Existem veiculos
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
                                 System.out.println("Informe o ID na proxima linha: ");
-                                try {
-                                    type_id = input.nextInt(); // Exception
-                                    Simulador.RemoveVehicle(type_id); // Exception
-                                } catch (InputMismatchException e1) {
-                                    input.nextLine(); // Limpa o buffer
-                                    Simulador.ClearScreen();
-                                    System.out.println("Input Invalido");
-                                } catch (InvalidIDException | VehicleArrayListIsEmptyException e2) {
-                                    Simulador.ClearScreen();
-                                    System.out.println(e2);
-                                }
+                                type_id = input.nextInt(); // Exception
+                                Simulador.RemoveVehicle(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine(); // Limpa o buffer
+                                Simulador.ClearScreen();
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException | VehicleArrayListIsEmptyException e2) {
+                                Simulador.ClearScreen();
+                                System.out.println(e2);
                             }
                         } else if (option == 2) { // Imprimir dados de todos os veiculos
-                            Simulador.PrintAllVehicles();
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
                         } else if (option != 3) {
                             Simulador.ClearScreen();
                             System.out.println("Opcao Invalida");
@@ -673,22 +707,23 @@ public final class Simulador {
                     option = 1;
                     do {
                         if (option == 1 || (option == 2 && type_id == -1)) { // Abastecer
-                            vehicleArrayListIsNotEmpty = Simulador.PrintAllVehicles();
-                            if(vehicleArrayListIsNotEmpty) {
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
                                 System.out.println("Informe o ID do veiculo: ");
-                                try {
-                                    type_id = input.nextInt(); // Exception
-                                    Simulador.FuelVehicle(type_id); // Exception
-                                } catch (InputMismatchException e1) {
-                                    input.nextLine();
-                                    type_id = -1;
-                                    Simulador.ClearScreen();
-                                    System.out.println("Input Invalido");
-                                } catch (InvalidIDException e2) {
-                                    type_id = -1;
-                                    Simulador.ClearScreen();
-                                    System.out.println(e2);
-                                }
+                                type_id = input.nextInt(); // Exception
+                                Simulador.FuelVehicle(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine();
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException e2) {
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println(e2);
+                            } catch (VehicleArrayListIsEmptyException e3) {
+                                Simulador.ClearScreen();
+                                System.out.println(e3);
                             }
                         } else if (option == 2) { // Abastecer mesmo veiculo novamente
                             try {
@@ -698,7 +733,12 @@ public final class Simulador {
                                 System.out.println(e1);
                             }
                         } else if (option == 3) { // Imprimir dados de todos os veiculos
-                            Simulador.PrintAllVehicles();
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
                         } else if (option != 4) {
                             Simulador.ClearScreen();
                             System.out.println("Opcao Invalida");
@@ -733,32 +773,38 @@ public final class Simulador {
                     option = 1;
                     do {
                         if (option == 1 || (option == 2 && type_id == -1)) { // Mover
-                            vehicleArrayListIsNotEmpty = Simulador.PrintAllVehicles();
-                            if(vehicleArrayListIsNotEmpty) {
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
                                 System.out.println("Informe o ID do veiculo: ");
-                                try {
-                                    type_id = input.nextInt(); // Exception
-                                    Simulador.MoveVehicle(type_id); // Exception
-                                } catch (InputMismatchException e1) {
-                                    input.nextLine();
-                                    type_id = -1;
-                                    Simulador.ClearScreen();
-                                    System.out.println("Input Invalido");
-                                } catch (InvalidIDException e2) {
-                                    type_id = -1;
-                                    Simulador.ClearScreen();
-                                    System.out.println(e2);
-                                }
+                                type_id = input.nextInt(); // Exception
+                                Simulador.MoveVehicle(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine();
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException e2) {
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println(e2);
+                            } catch (VehicleArrayListIsEmptyException e3) {
+                                Simulador.ClearScreen();
+                                System.out.println(e3);
                             }
                         } else if (option == 2) { // Mover mesmo veiculo novamente
                             try {
                                 Simulador.MoveVehicle(type_id);
-                            } catch (InvalidIDException e1) {
+                            } catch (InvalidIDException | VehicleArrayListIsEmptyException e1) {
                                 Simulador.ClearScreen();
                                 System.out.println(e1);
                             }
                         } else if (option == 3) { // Imprimir dados de todos os veiculos
-                            Simulador.PrintAllVehicles();
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
                         } else if (option != 4) {
                             Simulador.ClearScreen();
                             System.out.println("Opcao Invalida");
@@ -789,291 +835,327 @@ public final class Simulador {
                 }
 
                 case 5 -> { // Mover todos os veiculos
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        do {
-                            if (option == 'a') { // Move todos os veiculos
-                                Simulador.ClearScreen();
-                                Simulador.MoveAllVehicles();
-                            } else if (option == 'b') { // Imprime dados de todos os veiculos
-                                Simulador.PrintAllVehicles();
-                            } else if (option != 'c') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Mover todos os veiculos novamente ");
-                            System.out.println("b: Imprimir dados de todos os veiculos ");
-                            System.out.println("c: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-
-                        } while (option != 'c');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
-                }
-
-                case 6 -> {
-                    // Imprimir dados de todos os veiculos
-                    
-                    option = 'a';
+                    option = 1;
                     do {
-                        if (option == 'a') {
-                            Simulador.PrintAllVehicles();
-                        } else if (option != 'b') {
+                        if (option == 1) { // Move todos os veiculos
+                            Simulador.ClearScreen();
+                            try {
+                                Simulador.MoveAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option == 2) { // Imprime dados de todos os veiculos
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option != 3) {
                             Simulador.ClearScreen();
                             System.out.println("Opcao invalida");
                         }
+                        System.out.println("Opcoes: ");
+                        System.out.println("|1| Mover todos os veiculos novamente ");
+                        System.out.println("|2| Imprimir dados de todos os veiculos ");
+                        System.out.println("|3| Voltar para o menu ");
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 4;
+                            input.nextLine();
+                        }
+                    } while (option != 3);
+                }
+
+                case 6 -> { // Imprimir dados de todos os veiculos
+                    option = 1;
+                    do {
+                        if (option == 1) {
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option != 2) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
+                        System.out.println("Opcoes: ");
+                        System.out.println("|1| Imprimir novamente ");
+                        System.out.println("|2| Voltar para o menu ");
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 4;
+                            input.nextLine();
+                        }
+                    } while (option != 2);
+                }
+
+                case 7 -> { // Imprimir dados de veiculos por tipo
+                    option = 1;
+                    do {
+                        if (option == 1) {
+                            Simulador.ClearScreen();
+                            System.out.println("""
+                                               Informe o tipo de veiculo:
+                                               |1| Bicicleta
+                                               |2| Carro Popular
+                                               |3| Motocicleta
+                                               |4| Ferrari
+                                               """);
+                            System.out.println("Digite a opcao na proxima linha: ");
+                            try {
+                                option = input.nextInt(); // Exception
+                            } catch (InputMismatchException e1) {
+                                option = 5;
+                                input.nextLine();
+                            }
+                            switch (option) {
+                                case 1 -> // Bicicleta
+                                    Simulador.PrintAllVehicles_perType("Bicicleta");
+                                case 2 -> // Carro Popular
+                                    Simulador.PrintAllVehicles_perType("CarroPopular");
+                                case 3 -> // Motocicleta
+                                    Simulador.PrintAllVehicles_perType("Motocicleta");
+                                case 4 -> // Ferrari
+                                    Simulador.PrintAllVehicles_perType("Ferrari");
+                                default -> {
+                                    Simulador.ClearScreen();
+                                    System.out.println("Opcao Invalida");
+                                }
+                            }
+                        } else if (option != 2) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
+
+                        System.out.println("""
+                                           Opcoes:
+                                           |1| Imprimir novamente
+                                           |2| Voltar para o menu
+                                           """);
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 3;
+                            input.nextLine();
+                        }
+                    } while (option != 2);
+                }
+
+                case 8 -> { // Esvaziar um pneu especifico
+                    option = 1;
+                    type_id = -1;
+                    do {
+                        if (option == 1 || (option == 2 && type_id == -1)) { // Esvaziar pneu
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
+                                System.out.println("Informe o ID do veiculo: ");
+                                type_id = input.nextInt(); // Exception
+                                Simulador.EmptyTire(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine();
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException e2) {
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println(e2);
+                            } catch (VehicleArrayListIsEmptyException e3) {
+                                Simulador.ClearScreen();
+                                System.out.println(e3);
+                            }
+                        } else if (option == 2) { // Esvaziar outro pneu do mesmo veiculo
+                            try {
+                                Simulador.EmptyTire(type_id);
+                            } catch (InvalidIDException e2) {
+                                type_id = -1;
+                                Simulador.ClearScreen();
+                                System.out.println(e2);
+                            }
+                        } else if (option == 3) { // Imprimir dados de todos os veiculos
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option != 4) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
 
                         System.out.println("Opcoes: ");
-                        System.out.println("a: Imprimir novamente ");
-                        System.out.println("b: Voltar para o menu ");
-                        System.out.printf("Opcao: ");
-                        option = input.next().charAt(0);
-                    } while (option != 'b');
+                        System.out.println("|1| Esvaziar pneu de outro veiculo");
+                        if(type_id != -1) {
+                            String vehicleType=new String();
+                            try {
+                                vehicleType = Simulador.getVehicleType(type_id);
+                            } catch (InvalidIDException e1) {};
+                            System.out.printf("|2| Esvaziar pneu do mesmo veiculo(%s,ID:%d)\n",
+                                    vehicleType, type_id);
+                        }
+                        else {
+                            System.out.printf("|2| Esvaziar pneu do mesmo veiculo\n");
+                        }
+                        System.out.println("|3| Imprimir dados de todos os veiculos");
+                        System.out.println("|4| Voltar para o menu");
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 5;
+                            input.nextLine();
+                        }
+                    } while (option != 4);
                 }
 
-                case 7 -> {
-                    // Imprimir dados de veiculos por tipo
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        do {
-                            if (option == 'a') {
+                case 9 -> { // Calibrar um pneu especifico
+                    option = 1;
+                    type_id = -1;
+                    do {
+                        if (option == 1 || (option == 2 && type_id == -1)) { // Calibrar pneu
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
+                                System.out.println("Informe o ID do veiculo: ");
+                                type_id = input.nextInt(); // Exception
+                                Simulador.CalibrateTire(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine();
+                                type_id = -1;
                                 Simulador.ClearScreen();
-                                System.out.println("Informe o tipo de veiculo: ");
-                                System.out.println("a: Bicicleta");
-                                System.out.println("b: Carro Popular");
-                                System.out.println("c: Motocicleta");
-                                System.out.println("d: Ferrari");
-                                System.out.printf("Opcao: ");
-                                option = input.next().charAt(0);
-
-                                switch (option) {
-                                    case 'a' -> // Bicicleta
-                                        Simulador.PrintAllVehicles_perType("Bicicleta");
-                                    case 'b' -> // Carro Popular
-                                        Simulador.PrintAllVehicles_perType("CarroPopular");
-                                    case 'c' -> // Motocicleta
-                                        Simulador.PrintAllVehicles_perType("Motocicleta");
-                                    case 'd' -> // Ferrari
-                                        Simulador.PrintAllVehicles_perType("Ferrari");
-                                    default -> {
-                                        Simulador.ClearScreen();
-                                        System.out.println("Opcao invalida");
-                                    }
-                                }
-                            } else if (option != 'b') {
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException e2) {
+                                type_id = -1;
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                System.out.println(e2);
+                            } catch (VehicleArrayListIsEmptyException e3) {
+                                Simulador.ClearScreen();
+                                System.out.println(e3);
                             }
-
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Imprimir novamente ");
-                            System.out.println("b: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-
-                        } while (option != 'b');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
-                }
-
-                case 8 -> {
-                    // Esvaziar um pneu especifico
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        type_id = 0;
-                        do {
-                            if (option == 'a') { // Esvaziar pneu
-                                Simulador.PrintAllVehicles();
-                                System.out.printf("Informe o ID do veiculo: ");
-                                type_id = input.nextInt();
-                                Simulador.EmptyTire(type_id);
-                            } else if (option == 'b') { // Esvaziar outro pneu do mesmo veiculo
-                                Simulador.EmptyTire(type_id);
-                            } else if (option == 'c') { // Imprimir dados de todos os veiculos
-                                Simulador.PrintAllVehicles();
-                            } else if (option != 'd') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Esvaziar pneu de outro veiculo");
-                            System.out.printf("b: Esvaziar pneu do mesmo veiculo(%s,ID:%d)\n",
-                                    Simulador.getVehicleType(type_id), type_id);
-                            System.out.println("c: Imprimir dados de todos os veiculos");
-                            System.out.println("d: Voltar para o menu");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-
-                        } while (option != 'd');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
-                }
-
-                case 9 -> {
-                    // Calibrar um pneu especifico
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        type_id = 0;
-                        do {
-                            if (option == 'a') { // Calibrar pneu
-                                Simulador.PrintAllVehicles();
-                                System.out.printf("Informe o ID do veiculo: ");
-                                type_id = input.nextInt();
+                        } else if (option == 2) { // Calibrar pneu do mesmo veiculo
+                            try {
                                 Simulador.CalibrateTire(type_id);
-                            } else if (option == 'b') { // Calibrar pneu do mesmo veiculo
-                                Simulador.CalibrateTire(type_id);
-                            } else if (option == 'c') { // Imprimir dados de todos os veiculos
+                            } catch (InvalidIDException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option == 3) { // Imprimir dados de todos os veiculos
+                            try {
                                 Simulador.PrintAllVehicles();
-                            } else if (option != 'd') {
+                            } catch (VehicleArrayListIsEmptyException e1) {
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                System.out.println(e1);
                             }
+                        } else if (option != 4) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
 
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Calibrar pneu de outro veiculo ");
-                            System.out.printf("b: Calibrar pneu do mesmo veiculo(%s,ID:%d)\n",
-                                    Simulador.getVehicleType(type_id), type_id);
-                            System.out.println("c: Imprimir dados de todos os veiculos ");
-                            System.out.println("d: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-
-                        } while (option != 'd');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
+                        System.out.println("Opcoes: ");
+                        System.out.println("|1| Calibrar pneu de outro veiculo ");
+                        if(type_id != -1) {
+                            String vehicleType=new String();
+                            try {
+                                vehicleType = Simulador.getVehicleType(type_id);
+                            } catch (InvalidIDException e1) {}
+                            System.out.printf("|2| Calibrar pneu do mesmo veiculo(%s,ID:%d)\n",
+                                    vehicleType, type_id);
+                        } else {
+                            System.out.printf("|2| Calibrar pneu do mesmo veiculo\n");
+                        }
+                        System.out.println("|3| Imprimir dados de todos os veiculos ");
+                        System.out.println("|4| Voltar para o menu ");
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 5;
+                            input.nextLine();
+                        }
+                    } while (option != 4);
                 }
 
-                case 10 -> {
-                    // Calibrar todos os pneus
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        do {
-                            if (option == 'a') { // Calibra todos os pneus
-                                Simulador.PrintAllVehicles();
-                                System.out.printf("Informe o ID do veiculo: ");
-                                type_id = input.nextInt();
-                                Simulador.CalibrateAllTires(type_id);
-                            } else if (option == 'b') { // Imprimi dados de todos os veiculos
-                                Simulador.PrintAllVehicles();
-                            } else if (option != 'c') {
+                case 10 -> { // Calibrar todos os pneus
+                    option = 1;
+                    do {
+                        if (option == 1) { // Calibra todos os pneus
+                            try {
+                                Simulador.PrintAllVehicles(); // Exception
+                                System.out.println("Informe o ID do veiculo: ");
+                                type_id = input.nextInt(); // Exception
+                                Simulador.CalibrateAllTires(type_id); // Exception
+                            } catch (InputMismatchException e1) {
+                                input.nextLine();
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Calibrar pneus de outro veiculo ");
-                            System.out.println("b: Imprimir dados de todos os veiculos");
-                            System.out.println("c: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                        } while (option != 'c');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
+                                System.out.println("Input Invalido");
+                            } catch (InvalidIDException | VehicleArrayListIsEmptyException e2) {
                                 Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                System.out.println(e2);
                             }
-                        } while (option != 'a');
-                    }
+                        } else if (option == 2) { // Imprimi dados de todos os veiculos
+                            try {
+                                Simulador.PrintAllVehicles();
+                            } catch (VehicleArrayListIsEmptyException e1) {
+                                Simulador.ClearScreen();
+                                System.out.println(e1);
+                            }
+                        } else if (option != 3) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao invalida");
+                        }
+                        System.out.println("""
+                                           Opcoes:
+                                           |1| Calibrar pneus de outro veiculo
+                                           |2| Imprimir dados de todos os veiculos
+                                           |3| Voltar para o menu
+                                           """);
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 5;
+                            input.nextLine();
+                        }
+                    } while (option != 3);
                 }
 
-                case 11 -> {
-                    // Imprimir pista de corrida
-                    
-                    if (!Simulador.VehicleArrayList.isEmpty()) {
-                        option = 'a';
-                        do {
-                            if (option == 'a') {
+                case 11 -> { // Imprimir pista de corrida
+                    option = 1;
+                    do {
+                        if (option == 1) {
+                            Simulador.ClearScreen();
+                            try {
+                                Simulador.PrintRoad(); // Exception
+                            } catch (VehicleArrayListIsEmptyException e1) {
                                 Simulador.ClearScreen();
-                                Simulador.PrintRoad();
-                            } else if (option != 'b') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
+                                System.out.println(e1);
                             }
-
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Imprimir novamente ");
-                            System.out.println("b: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-
-                        } while (option != 'b');
-                    } else {
-                        Simulador.ClearScreen();
-                        System.out.println("Nenhum veiculo encontrado");
-                        do {
-                            System.out.println("Opcoes: ");
-                            System.out.println("a: Voltar para o menu ");
-                            System.out.printf("Opcao: ");
-                            option = input.next().charAt(0);
-                            if (option != 'a') {
-                                Simulador.ClearScreen();
-                                System.out.println("Opcao invalida");
-                            }
-                        } while (option != 'a');
-                    }
+                        } else if (option != 2) {
+                            Simulador.ClearScreen();
+                            System.out.println("Opcao Invalida");
+                        }
+                        System.out.println("""
+                                           Opcoes:
+                                           |1| Imprimir novamente
+                                           |2| Voltar para o menu
+                                           """);
+                        System.out.println("Digite a opcao na proxima linha: ");
+                        try {
+                            option = input.nextInt(); // Exception
+                        } catch (InputMismatchException e1) {
+                            option = 5;
+                            input.nextLine();
+                        }
+                    } while (option != 2);
                 }
             }
             Simulador.ClearScreen();

@@ -11,6 +11,6 @@ package SimuladorDeCorrida_Exceptions;
 public class VehicleArrayListIsEmptyException extends Exception {
     @Override
     public String toString() {
-        return "Vehicle Array List Estah Vazia";
+        return "Nenhum Veiculo Disponivel";
     }
 }

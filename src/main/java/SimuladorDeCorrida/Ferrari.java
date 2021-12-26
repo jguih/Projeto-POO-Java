@@ -36,7 +36,7 @@ public final class Ferrari extends VeiculoMotorizado implements IPVA {
     @Override
     public String toString() { // Retorna uma string com informacoes do veiculo
         String string = String.format("Ferrari | ID: %d | Distancia Percorrida: %d blocos |"
-                + " Combustivel: %.2fL | IPVA: %s | Rodas: %d%d%d%d ", getID(), getDistanciaPercorrida(),
+                + " Combustivel: %.2fL | IPVA: %s | Rodas: [%d%d%d%d] ", getID(), getDistanciaPercorrida(),
                 getFuel(), ipva_condition ? "Pago" : "Nao Pago",
                 getCalibragem(0) == true ? 1 : 0, getCalibragem(1) == true ? 1 : 0,
                 getCalibragem(2) == true ? 1 : 0, getCalibragem(3) == true ? 1 : 0);
@@ -51,10 +51,5 @@ public final class Ferrari extends VeiculoMotorizado implements IPVA {
     @Override
     public void setIPVA_condition(boolean condition) {
         ipva_condition = condition;
-    }
-
-    @Override
-    public boolean getIPVA_condition() {
-        return ipva_condition;
     }
 }

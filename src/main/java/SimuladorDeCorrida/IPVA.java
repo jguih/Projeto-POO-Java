@@ -11,5 +11,4 @@ public interface IPVA {
 
     void CalcularIPVA(); // Calcular e armazena o falor do IPVA
     void setIPVA_condition(boolean condition); // Seta se o IPVA foi pago ou nao
-    boolean getIPVA_condition(); // Retorna se o IPVA foi pago ou nao
 }

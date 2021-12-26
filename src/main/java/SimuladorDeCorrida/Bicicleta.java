@@ -49,9 +49,9 @@ public final class Bicicleta extends Veiculo {
     @Override
     public String toString() { // Retorna uma string com informacoes do veiculo
         String string = String.format("Bicicleta | ID: %d | "
-                + "Distancia Percorrida: %d blocos | Rodas: %d%d",
+                + "Distancia Percorrida: %d blocos | Rodas: [%d%d]",
                  getID(), getDistanciaPercorrida(),
-                getCalibragem(0) == true ? 1 : 0, getCalibragem(1) == true ? 1 : 0);
+                getCalibragem(0) ? 1 : 0, getCalibragem(1) ? 1 : 0);
         return string;
     }
 }
