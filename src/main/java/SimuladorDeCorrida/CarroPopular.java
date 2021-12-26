@@ -14,10 +14,8 @@ public final class CarroPopular extends VeiculoMotorizado implements IPVA {
         super(ID, 4);
         // IPVA
         CalcularIPVA();
-        boolean test;
         Random rand = new Random();
-        test = rand.nextBoolean();
-        setIPVA_condition(test);
+        setIPVA_condition(rand.nextBoolean());
     }
 
     // Retorna a quantidade de blocos por movimento
@@ -55,7 +53,6 @@ public final class CarroPopular extends VeiculoMotorizado implements IPVA {
     @Override
     public void setIPVA_condition(boolean condition) {
         ipva_condition = condition;
-        
     }
 
     @Override

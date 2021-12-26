@@ -14,10 +14,8 @@ public final class Ferrari extends VeiculoMotorizado implements IPVA {
         super(ID, 4);
         // IPVA
         CalcularIPVA();
-        boolean test;
         Random rand = new Random();
-        test = rand.nextBoolean();
-        setIPVA_condition(test);
+        setIPVA_condition(rand.nextBoolean());
     }
 
     @Override
