@@ -189,8 +189,8 @@ public final class Simulador {
             Veiculo v;
             int verify_return = verify.VehicleArray_containsVehicleType(VehicleType);
             
+            ClearScreen();
             if (verify_return>-1) {
-                ClearScreen();
                 System.out.printf("Veiculos(%s) disponiveis: \n", VehicleType);
                 for (int i = verify_return; i < VehicleArrayList.size(); i++) {
                     v = VehicleArrayList.get(i);
