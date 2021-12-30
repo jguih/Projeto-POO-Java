@@ -1,1 +1,2 @@
-*.netbeans_automatic_build
+target/classes/.netbeans_automatic_build
+target/test_classes/.netbeans_automatic_build
